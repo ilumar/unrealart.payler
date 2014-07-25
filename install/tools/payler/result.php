@@ -4,9 +4,9 @@
 CModule::IncludeModule('currency');
 CModule::IncludeModule('sale');
 
-include("/bitrix/php_interface/include/sale_payment/payler/payler.classes.php");
-include(GetLangFileName("/bitrix/php_interface/include/sale_payment/payler/result.php"));
-include(GetLangFileName("/bitrix/php_interface/include/sale_payment/payler/codes.php"));
+include($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/include/sale_payment/payler/payler.classes.php");
+include(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/include/sale_payment/payler/result.php"));
+include(GetLangFileName($_SERVER["DOCUMENT_ROOT"]."/bitrix/php_interface/include/sale_payment/payler/codes.php"));
 
 
 
@@ -19,6 +19,8 @@ while ($ptype = $db_ptype->Fetch())
     if($ptype["PSA_ACTION_FILE"]=="/bitrix/php_interface/include/sale_payment/payler") $arPaySys = unserialize($ptype["PSA_PARAMS"]);
 }
 
+
+
 $option = array(
     "DEBUG"=>$arPaySys["PAYLER_DEBUG"]["VALUE"],
     "KEY"=>$arPaySys["PAYLER_KEY"]["VALUE"],
@@ -29,15 +31,20 @@ $option = array(
     "ORDER_SUCCESS"=>$arPaySys["PAYLER_ORDER_SUCCESS"]["VALUE"],
     "ORDER_ERROR"=>$arPaySys["PAYLER_ORDER_ERROR"]["VALUE"],
 );
+
+
+if($VOUCHER_NUM=='') LocalRedirect($option["ORDER_ERROR"]);
+$arFilter = Array("USER_ID" => $USER->GetID(),"PS_STATUS_MESSAGE"=>$VOUCHER_NUM);
+$db_sales = CSaleOrder::GetList(array("DATE_INSERT" => "ASC"), $arFilter);
+while ($ar_sales = $db_sales->Fetch()) $ORDER_ID = $ar_sales["ID"];
+
+
+
 if($option["DEBUG"]=="Y") $option["DEBUG"] == true; else $option["DEBUG"] == false;
 if($option["ORDER_SUCCESS"]=="") 	$ok_order = str_replace("#ID#",$ORDER_ID,$option["ORDER_SUCCESS"]); 	else $ok_order = str_replace("#ID#",$ORDER_ID,$option["ORDER_DETAIL"]);
 if($option["ORDER_ERROR"]=="") 		$error_order = str_replace("#ID#",$ORDER_ID,$option["ORDER_ERROR"]); 	else $error_order = str_replace("#ID#",$ORDER_ID,$option["ORDER_DETAIL"]);
 
 
-if($VOUCHER_NUM=='') LocalRedirect($error_order);
-$arFilter = Array("USER_ID" => $USER->GetID(),"PS_STATUS_MESSAGE"=>$VOUCHER_NUM);
-$db_sales = CSaleOrder::GetList(array("DATE_INSERT" => "ASC"), $arFilter);
-while ($ar_sales = $db_sales->Fetch()) $ORDER_ID = $ar_sales["ID"];
 
 
 $payler = new CPayler($option["DEBUG"]);
@@ -46,15 +53,17 @@ $data = array (
     "order_id" => $VOUCHER_NUM,
 );
 $result = $payler->POSTtoGateAPI($data, "GetStatus");
+
 if($result['status'] == 'Charged') {
-    echo'ok';
     $arOrder = CSaleOrder::GetByID($ORDER_ID);
     $arFields = array(
-        "PS_STATUS"=>"Y",
-        "PS_STATUS_CODE"=>$result['status'],
-        "PS_STATUS_DESCRIPTION"=>$result['message']
+        "PAYED" => "Y",
+        "DATE_PAYED" => Date(CDatabase::DateFormatToPHP(CLang::GetDateFormat("FULL", LANG))),
+        "PS_STATUS" => "Y",
+        "PS_STATUS_DESCRIPTION" => $result['status'],
+        "STATUS_ID" => "P"
     );
-    CSaleOrder::PayOrder($ORDER_ID, 'Y', false, null, 0, $arField);
+    CSaleOrder::Update($ORDER_ID, $arFields);
     LocalRedirect($ok_order);
 }else{
     $arOrder = CSaleOrder::GetByID($ORDER_ID);
