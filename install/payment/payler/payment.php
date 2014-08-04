@@ -74,7 +74,7 @@ $option = array(
 	"ORDER_LIST"=>CSalePaySystemAction::GetParamValue("PAYLER_ORDER_LIST"),
 	"ORDER_DETAIL"=>CSalePaySystemAction::GetParamValue("PAYLER_ORDER_DETAIL"),
 );
-if($option["DEBUG"]=="Y") $option["DEBUG"] == true; else $option["DEBUG"] == false;
+if($option["DEBUG"]=="Y") $option["DEBUG"] = true; else $option["DEBUG"] = false;
 
 /* ≈сли оплачен - то кидаем его обратно в заказ */
 if($arOrder["PAYED"] == "Y") header("Location: ".str_replace("#ID#",$ORDER_ID,$option["ORDER_DETAIL"]));
