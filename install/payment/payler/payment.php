@@ -41,7 +41,7 @@ if(isset($arResult['ORDER_ID'])){
 }elseif(isset($arResult['ID'])){
     $ORDER_ID = $arResult['ID'];
 }else{
-    $ORDER_ID = (int) $_GET['ORDER_ID'];
+    $ORDER_ID = IntVal($GLOBALS["SALE_INPUT_PARAMS"]["ORDER"]["ID"]);
 };
 
 $arOrder = CSaleOrder::GetByID($ORDER_ID);

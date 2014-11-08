@@ -40,7 +40,7 @@ while ($ar_sales = $db_sales->Fetch()) $ORDER_ID = $ar_sales["ID"];
 
 
 
-if($option["DEBUG"]=="Y") $option["DEBUG"] = true; else $option["DEBUG"] = false;
+if($option["DEBUG"]=="Y") $option["DEBUG"] == true; else $option["DEBUG"] == false;
 if($option["ORDER_SUCCESS"]=="") 	$ok_order = str_replace("#ID#",$ORDER_ID,$option["ORDER_SUCCESS"]); 	else $ok_order = str_replace("#ID#",$ORDER_ID,$option["ORDER_DETAIL"]);
 if($option["ORDER_ERROR"]=="") 		$error_order = str_replace("#ID#",$ORDER_ID,$option["ORDER_ERROR"]); 	else $error_order = str_replace("#ID#",$ORDER_ID,$option["ORDER_DETAIL"]);
 
