@@ -35,7 +35,7 @@ function genOrderId($oid,$sum){
 	return $result;
 }
 
-/* Проверяем заказ */
+
 if(isset($arResult['ORDER_ID'])){
 	$ORDER_ID = $arResult['ORDER_ID'];
 }elseif(isset($arResult['ID'])){
@@ -48,10 +48,10 @@ $arOrder = CSaleOrder::GetByID($ORDER_ID);
 
 
 
-/* Конвеертируем валюту в копеейки */
+
 $current_price = _getExplodeMoney($arOrder["PRICE"],false) * CCurrencyRates::GetConvertFactor($arOrder["CURRENCY"], 'RUB') * 100 + _getExplodeMoney($arOrder["PRICE"],true);
 
-/* Данные по корзине товаров (Названия товара и количество) */
+
 $arBasketItems = array();
 $arItemNames = "";
 $arItemCounts = 0;
@@ -65,7 +65,6 @@ foreach ( $arBasketItems as $arItem )
 $arItemNames = implode(", ",$arItemNames);
 
 
-/* Параметры платежного обработчика */
 $option = array(
 	"DEBUG"=>CSalePaySystemAction::GetParamValue("PAYLER_DEBUG"),
 	"KEY"=>CSalePaySystemAction::GetParamValue("PAYLER_KEY"),
@@ -75,8 +74,6 @@ $option = array(
 	"ORDER_DETAIL"=>CSalePaySystemAction::GetParamValue("PAYLER_ORDER_DETAIL"),
 );
 if($option["DEBUG"]=="Y") $option["DEBUG"] = true; else $option["DEBUG"] = false;
-
-/* Если оплачен - то кидаем его обратно в заказ */
 if($arOrder["PAYED"] == "Y") header("Location: ".str_replace("#ID#",$ORDER_ID,$option["ORDER_DETAIL"]));
 
 /* Payler API */
@@ -86,7 +83,7 @@ $data = array(
 	"type"=>$option["TYPE"],
 	"order_id"=>genOrderId($ORDER_ID,$current_price),
 	"amount"=>$current_price,
-	"product"=>_covert2utf($arItemNames),
+	"product"=>_covert2utf(TruncateText($arItemNames,255)),
 	"total"=>$arItemCounts,
 );
 
